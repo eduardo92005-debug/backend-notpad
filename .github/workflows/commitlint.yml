@@ -3,7 +3,7 @@ name: Commit Lint Check
 on:
   pull_request:
     branches:
-      - master
+      - production
 
 jobs:
   commitlint:
