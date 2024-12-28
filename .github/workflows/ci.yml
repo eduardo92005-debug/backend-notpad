@@ -1,0 +1,28 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Elixir
+      uses: actions/setup-elixir@v1
+
+    - name: Install dependencies
+      run: |
+        mix deps.get
+
+    - name: Run tests
+      run: |
+        mix test
