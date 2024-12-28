@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  phoenix:
+    build: .
+    container_name: phoenix_app
+    ports:
+      - "4000:4000"
+    environment:
+      - MIX_ENV=dev
+    volumes:
+      - .:/app
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
