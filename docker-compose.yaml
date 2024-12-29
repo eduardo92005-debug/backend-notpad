@@ -1,15 +1,25 @@
-version: "3.8"
-
 services:
   phoenix:
     build: .
-    container_name: phoenix_app
+    container_name: notpad_app
     ports:
-      - "4000:4000"
-    environment:
-      - MIX_ENV=dev
+      - "8080:4000"
+    env_file:
+      - envs/dev.env
     volumes:
-      - .:/app
+      - ./app:/app
+    networks:
+      - app_network
+  
+  db:
+    image: postgres:13
+    container_name: notpad_db
+    env_file:
+      - envs/dev.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
     networks:
       - app_network
 
