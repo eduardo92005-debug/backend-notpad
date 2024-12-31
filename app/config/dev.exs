@@ -2,10 +2,10 @@ import Config
 
 # Configure your database
 config :app, App.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "notpad_db",
-  database: "app_dev",
+  username: System.get_env("DB_USERNAME", "postgres"),  
+  password: System.get_env("DB_PASSWORD", "postgres"),
+  hostname: System.get_env("DB_HOST", "notpad_db"),
+  database: System.get_env("DB_NAME", "app_dev"),
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
