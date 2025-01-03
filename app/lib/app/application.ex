@@ -11,6 +11,7 @@ defmodule App.Application do
       AppWeb.Telemetry,
       App.Repo,
       {DNSCluster, query: Application.get_env(:app, :dns_cluster_query) || :ignore},
+      {AppWeb.TextState, "Texto inicial"},
       {Phoenix.PubSub, name: App.PubSub},
       # Start the Finch HTTP client for sending emails
       {Finch, name: App.Finch},
