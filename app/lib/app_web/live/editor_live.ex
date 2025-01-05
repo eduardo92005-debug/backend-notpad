@@ -5,32 +5,37 @@ defmodule AppWeb.EditorLive do
   alias App.Repo
   alias App.Text
 
-  @topic "editor:shared"
+  @topic_prefix "editor:shared:"
 
-  def mount(_params, _session, socket) do
+  def mount(%{"path" => path}, _session, socket) do
+    topic = "#{@topic_prefix}#{path}"
+    path = if is_list(path), do: List.first(path), else: path
     if connected?(socket) do
-      PubSub.subscribe(App.PubSub, @topic)
+      PubSub.subscribe(App.PubSub, topic)
     end
 
-    # Usando o from corretamente e garantindo que a consulta esteja bem definida
-    query = from t in Text, order_by: [asc: t.id], limit: 1
-    text = Repo.one(query)
+    # Buscar o texto associado ao path
+    text = Repo.get_by(Text, path: path)
 
-    # Se não encontrar um texto, cria o texto inicial
-    initial_text = if text do
+    # Se não encontrar um texto, cria o texto inicial para o path
+    text = if text do
       text
     else
-      %Text{content: "Texto inicial"}
-      |> Repo.insert!()  # Cria um novo texto com o conteúdo inicial
+      # Criar um changeset para o novo texto
+      %Text{content: "Texto inicial", path: path}
+      |> Text.changeset(%{content: "Texto inicial", path: path})  # Aplicando o changeset
+      |> Repo.insert!()  # Insere o texto com o changeset validado
     end
 
-    {:ok, assign(socket, text: initial_text.content)}
+    {:ok, assign(socket, text: text.content, path: path, topic: topic)}
   end
 
   def handle_event("update_text", %{"editor" => new_text}, socket) do
-    # Buscar o texto mais recente
-    query = from t in Text, order_by: [asc: t.id], limit: 1
-    text = Repo.one(query) || %Text{content: new_text}
+    path = socket.assigns.path
+    topic = socket.assigns.topic
+
+    # Buscar o texto associado ao path
+    text = Repo.get_by(Text, path: path) || %Text{content: new_text, path: path}
 
     # Alterar o conteúdo do texto
     changeset = Text.changeset(text, %{content: new_text})
@@ -38,7 +43,7 @@ defmodule AppWeb.EditorLive do
     case Repo.insert_or_update(changeset) do
       {:ok, updated_text} ->
         # Propagar a atualização para outros clientes conectados via PubSub
-        PubSub.broadcast(App.PubSub, @topic, {:update_text, updated_text.content})
+        PubSub.broadcast(App.PubSub, topic, {:update_text, updated_text.content})
         {:noreply, assign(socket, text: updated_text.content)}
 
       {:error, _changeset} ->
